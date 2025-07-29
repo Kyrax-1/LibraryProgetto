@@ -16,10 +16,10 @@ let books = [
     id: 1,
     title: "Harry Potter e la Pietra Filosofale",
     author: "J.K. Rowling",
-    isAvailable: true,
+    isAvailable: false,
     borrowerName: "null",
-    loanDate: "null",
-    loanExpir: "null"
+    loanDate: "29-07-2025",
+    loanExpir: "29-08-2025"
   },
   {
     id: 2,
@@ -34,10 +34,10 @@ let books = [
     id: 3,
     title: "Jane Eyre",
     author: "Charlotte Brontë",
-    isAvailable: true,
+    isAvailable: false,
     borrowerName: "null",
-    loanDate: "null",
-    loanExpir: "null"
+    loanDate: "29-07-2025",
+    loanExpir: "29-08-2025"
   },
   {
     id: 4,
