@@ -1,6 +1,7 @@
 import { useAppDispatch } from "../redux/hooks";
 import { deleteBookAsync } from "../redux/booksThunks";
 import type { Book } from "../redux/booksSlice";
+import DialogModifica from "./DialogModifica";
 
 type BookItemProps = {
     book: Book;
@@ -13,13 +14,10 @@ export default function BookItem({ book, isAdmin }: BookItemProps) {
     const handleDelete = () => {
         if (window.confirm(`Sei sicuro di voler eliminare "${book.title}"?`)) {
             dispatch(deleteBookAsync(book.id));
+            console.log(book.id, book)
         }
     };
 
-    const handleEdit = () => {
-        // logica di modifica
-        console.log("Modifica libro", book.id);
-    };
 
     const availabilityColor = book.isAvailable ? 'text-green-500' : 'text-red-500';
     const availabilityText = book.isAvailable ? 'Disponibile' : 'Prestato';
@@ -39,12 +37,8 @@ export default function BookItem({ book, isAdmin }: BookItemProps) {
 
             {isAdmin && (
                 <div className="flex justify-end gap-2 mt-4">
-                    <button
-                        onClick={handleEdit}
-                        className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition"
-                    >
-                        Modifica
-                    </button>
+
+                    <DialogModifica Book={book}></DialogModifica>
                     <button
                         onClick={handleDelete}
                         className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition"

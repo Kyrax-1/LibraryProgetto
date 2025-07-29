@@ -103,6 +103,21 @@ app.delete("/api/book/:id", (req, res) => {
   }
 });
 
+//Modificare 
+app.patch("/api/book/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const partialUpdate = req.body;
+
+  const index = books.findIndex((book) => book.id === id);
+
+  if (index !== -1) {
+    books[index] = { ...books[index], ...partialUpdate };
+    res.json(books[index]); 
+  } else {
+    res.status(404).json({ message: "Libro non trovato" });
+  }
+});
+
 // Avvia il server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
