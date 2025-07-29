@@ -90,6 +90,19 @@ app.post("/api/book", (req, res) => {
   res.json(newBook);
 });
 
+//Delete
+app.delete("/api/book/:id", (req, res) => {
+  const id = parseInt(req.params.id); // Ottieni l'id dai parametri URL
+  const index = books.findIndex((book) => book.id === id); // Trova l'indice
+
+  if (index !== -1) {
+    const deletedBook = books.splice(index, 1); // Rimuove il libro
+    res.json({ message: "Libro eliminato", book: deletedBook[0] });
+  } else {
+    res.status(404).json({ message: "Libro non trovato" });
+  }
+});
+
 // Avvia il server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
