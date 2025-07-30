@@ -1,27 +1,37 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { addBookAsync, deleteBookAsync, fetchBooks, updateBookAsync } from './booksThunks';
+import { addBookAsync, deleteBookAsync, fetchBooks, updateBookAsync, fetchBookLoan } from './booksThunks';
 
-export type Book = {            // crep il tipo book
+export type Book = {
   id: number;
   title: string;
   author: string;
   isAvailable: boolean;
-  borrowerName: string | null;
-  loanDate: string | null;
-  loanExpir: string | null;
+  loanId?: number;
+  borrowerName?: string | null;
+  loanDate?: string | null;
+  loanExpir?: string | null;
 };
 
 type BooksState = {
   items: Book[];
   loading: boolean;
   error: string | null;
+  currentLoan: {
+    loading: boolean;
+    error: string | null;
+  };
 };
 
-const initialState: BooksState = {
+const initialState: BooksState = {      //stato iniziale
   items: [],
   loading: false,
-  error: null
-};        // stato iniziale del Film
+  error: null,
+  currentLoan: {
+    loading: false,
+    error: null
+  }
+};
+
 
 const booksSlice = createSlice({                 //creo lo slice
   name: 'books',                               // nome dello slice
@@ -40,6 +50,31 @@ const booksSlice = createSlice({                 //creo lo slice
       .addCase(fetchBooks.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || 'Errore nel fetch';
+      })
+      // Fetch single book loan
+      .addCase(fetchBookLoan.pending, (state) => {
+        state.currentLoan.loading = true;
+        state.currentLoan.error = null;
+      })
+      .addCase(fetchBookLoan.fulfilled, (state, action) => {
+        if (action.payload) {
+          const bookIndex = state.items.findIndex(b => b.id === action.payload.bookId);
+          if (bookIndex !== -1) {
+            state.items[bookIndex] = {
+              ...state.items[bookIndex],
+              loanId: action.payload.id,
+              borrowerName: action.payload.borrowerName,
+              loanDate: action.payload.loanDate,
+              loanExpir: action.payload.loanExpir,
+              isAvailable: false
+            };
+          }
+        }
+        state.currentLoan.loading = false;
+      })
+      .addCase(fetchBookLoan.rejected, (state, action) => {
+        state.currentLoan.loading = false;
+        state.currentLoan.error = action.error.message || 'Errore nel fetch prestito';
       })
       .addCase(addBookAsync.pending, (state) => {
         state.loading = true;

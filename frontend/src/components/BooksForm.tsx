@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAppDispatch } from "../redux/hooks";
-import { addBookAsync } from "../redux/booksThunks";
+import { addBookAsync } from "../redux/books/booksThunks";
 
 type BooksFormProps = {
   onSubmitSuccess: () => void;

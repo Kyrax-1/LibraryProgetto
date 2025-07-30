@@ -1,11 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import booksReducer from './booksSlice';
-import loansUIReducer from './loansSlice';
+import booksReducer from './books/booksSlice';
+import loansReducer from './loans/loansSlice';
 
 const store = configureStore({
   reducer: {
-    book: booksReducer,
-    loansUI: loansUIReducer,
+    books: booksReducer,
+    loans: loansReducer,
   },
 });
 

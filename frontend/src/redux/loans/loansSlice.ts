@@ -1,7 +1,7 @@
-import { createSlice } from '@reduxjs/toolkit';
+ import { createSlice } from '@reduxjs/toolkit';
 import { borrowBookAsync, extendLoanAsync, returnBookAsync } from './loansThunks';
 
-interface LoansUIState {
+interface LoansState {
     borrowingLoading: boolean;
     borrowingError: string | null;
     extendingLoading: boolean;
@@ -10,7 +10,7 @@ interface LoansUIState {
     returningError: string | null;
 }
 
-const initialLoansUIState: LoansUIState = {
+const initialLoansState: LoansState = {
     borrowingLoading: false,
     borrowingError: null,
     extendingLoading: false,
@@ -19,46 +19,40 @@ const initialLoansUIState: LoansUIState = {
     returningError: null,
 };
 
-const loansUISlice = createSlice({
-    name: 'loansUI',
-    initialState: initialLoansUIState,
+const loansSlice = createSlice({
+    name: 'loans',
+    initialState: initialLoansState,
     reducers: {},
     extraReducers: (builder) => {
         builder
-            // Gestione del borrowing
             .addCase(borrowBookAsync.pending, (state) => {
                 state.borrowingLoading = true;
                 state.borrowingError = null;
             })
             .addCase(borrowBookAsync.fulfilled, (state) => {
                 state.borrowingLoading = false;
-                state.borrowingError = null; // Reset errore al successo
             })
             .addCase(borrowBookAsync.rejected, (state, action) => {
                 state.borrowingLoading = false;
                 state.borrowingError = action.payload as string || 'Errore generico nel prestito';
             })
-            // Gestione dell'estensione
             .addCase(extendLoanAsync.pending, (state) => {
                 state.extendingLoading = true;
                 state.extendingError = null;
             })
             .addCase(extendLoanAsync.fulfilled, (state) => {
                 state.extendingLoading = false;
-                state.extendingError = null;
             })
             .addCase(extendLoanAsync.rejected, (state, action) => {
                 state.extendingLoading = false;
                 state.extendingError = action.payload as string || 'Errore generico nell\'estensione';
             })
-            // Gestione della restituzione
             .addCase(returnBookAsync.pending, (state) => {
                 state.returningLoading = true;
                 state.returningError = null;
             })
             .addCase(returnBookAsync.fulfilled, (state) => {
                 state.returningLoading = false;
-                state.returningError = null;
             })
             .addCase(returnBookAsync.rejected, (state, action) => {
                 state.returningLoading = false;
@@ -67,4 +61,7 @@ const loansUISlice = createSlice({
     },
 });
 
-export default loansUISlice.reducer;
+export default loansSlice.reducer;
+/**
+ *
+ */

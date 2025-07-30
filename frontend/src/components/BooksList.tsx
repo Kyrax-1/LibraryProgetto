@@ -1,15 +1,15 @@
 import { useEffect } from "react";
-import type { Book } from "../redux/booksSlice";
-import { fetchBooks } from "../redux/booksThunks";
+import type { Book } from "../redux/books/booksSlice";
+import { fetchBooks } from "../redux/books/booksThunks";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import BookItem from "./BookItems";
 
 export default function BooksList() {
     const dispatch = useAppDispatch();
-
-    const books = useAppSelector((state) => state.book.items);
-    const loading = useAppSelector((state) => state.book.loading);
-    const error = useAppSelector((state) => state.book.error);
+    
+    const books = useAppSelector((state) => state.books.items);
+    const loading = useAppSelector((state) => state.books.loading);
+    const error = useAppSelector((state) => state.books.error);
 
     useEffect(() => {
         dispatch(fetchBooks());
@@ -38,6 +38,4 @@ export default function BooksList() {
     )}
   </>
 );
-
-
 }

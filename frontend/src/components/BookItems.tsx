@@ -1,6 +1,6 @@
 import { useAppDispatch } from "../redux/hooks";
-import { deleteBookAsync } from "../redux/booksThunks";
-import type { Book } from "../redux/booksSlice";
+import { deleteBookAsync } from "../redux/books/booksThunks";
+import type { Book } from "../redux/books/booksSlice";
 import DialogModifica from "./DialogModifica";
 
 type BookItemProps = {
