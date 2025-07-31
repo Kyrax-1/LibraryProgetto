@@ -8,6 +8,7 @@ export default function BooksList() {
     const dispatch = useAppDispatch();
     
     const books = useAppSelector((state) => state.books.items);
+    console.log("📚 Lista libri aggiornata:", books);
     const loading = useAppSelector((state) => state.books.loading);
     const error = useAppSelector((state) => state.books.error);
 

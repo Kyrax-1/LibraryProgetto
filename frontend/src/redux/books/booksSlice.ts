@@ -94,6 +94,7 @@ const booksSlice = createSlice({                 //creo lo slice
         state.error = null;
       })
       .addCase(updateBookAsync.fulfilled, (state, action) => {
+        console.log("Libro aggiornato nel reducer:", action.payload);
         const updatedBook = action.payload;
         const index = state.items.findIndex(book => book.id === updatedBook.id);
         if (index !== -1) {
