@@ -17,7 +17,7 @@ function App() {
           <Route path="home" element={<HomepageAdmin />} />
           <Route path="prestiti" element={<PrestitiAdmin />} />
         </Route>
-        <Route path="/user/:id" element={<User />}>
+        <Route path="/user/:utenteId" element={<User />}>
           <Route path="home" element={<HomepageUser />} />
           <Route path="prestiti" element={<PrestitiUser />} />
         </Route>

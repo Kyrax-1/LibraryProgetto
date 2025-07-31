@@ -14,7 +14,7 @@ type BookItemProps = {
 
 export default function BookItem({ book: initialBook }: BookItemProps) {
     const location = useLocation();
-    const { id } = useParams(); // destruttura direttamente qui
+    const { utenteId } = useParams(); // destruttura direttamente qui
     const isAdmin = location.pathname.includes('admin');
     const dispatch = useAppDispatch();
 
@@ -24,11 +24,7 @@ export default function BookItem({ book: initialBook }: BookItemProps) {
         dispatch(fetchUtenti());
     }, [dispatch]);
 
-
-
-    const utente = utenti.find(utente => utente.id === parseInt(id!));
-
-
+    const utente = utenti.find(utente => utente.id === parseInt(utenteId!));
 
     const book = useAppSelector((state) =>
         state.books.items.find((b) => b.id === initialBook.id)
@@ -47,12 +43,12 @@ export default function BookItem({ book: initialBook }: BookItemProps) {
 
     function handleLoan() {
 
-        if (!book || !utente || !id) return null;
+        if (!book || !utente || !utenteId) return null;
 
         dispatch(borrowBookAsync({
             bookId: book.id,
             borrowerName: utente.nomeCompleto,
-            userId: parseInt(id)
+            userId: parseInt(utenteId)
         }))
     }
 
@@ -82,16 +78,18 @@ export default function BookItem({ book: initialBook }: BookItemProps) {
                 </div>
             )}
 
-            {!isAdmin && book.isAvailable && (
-                <div className="flex justify-end gap-2 mt-4">
-                    <button
-                        onClick={handleLoan}
-                        className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
-                    >
-                        Inizia Prestito
-                    </button>
-                </div>
-            )}
+            {!isAdmin ? (
+                book.isAvailable ? (
+                    <div className="flex justify-end gap-2 mt-4">
+                        <button
+                            onClick={handleLoan}
+                            className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition"
+                        >
+                            Inizia Prestito
+                        </button>
+                    </div>
+                ) : null
+            ) : null}
         </div>
     );
 }

@@ -10,7 +10,6 @@ export const fetchUtenti = createAsyncThunk(
     }
 
     const data = await response.json();
-    console.log("dati: "+ data)
 
     // Mappiamo i dati per restituire solo UtenteID e Nome + Cognome
     return data.map((utente: any) => ({

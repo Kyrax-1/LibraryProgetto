@@ -1,10 +1,25 @@
-import { useLocation, Link } from "react-router";
+import { useLocation, Link, useParams } from "react-router";
+import { useAppSelector } from "../redux/hooks";
 
 export default function Navbar() {
   const location = useLocation();
+  const { utenteId } = useParams(); // Recupera l'ID dell'utente dai parametri URL
   const isAdmin = location.pathname.includes("/admin");
-  const role = isAdmin ? "Admin" : "Utente";
-
+  
+  // Recupera gli utenti dal Redux store
+  const utenti = useAppSelector((state) => state.utenti.utenti);
+  const utentiLoading = useAppSelector((state) => state.utenti.loading);
+  
+  // Trova l'utente specifico se non è admin
+  const utente = !isAdmin && utenteId ? utenti.find(u => u.id === parseInt(utenteId)) : null;
+  
+  // Determina il nome da mostrare
+  const displayName = isAdmin 
+    ? "Admin" 
+    : utentiLoading 
+      ? "Caricamento..." 
+      : (utente?.nomeCompleto || "Utente");
+  
   const profileImg = isAdmin
     ? "https://cdn-icons-png.flaticon.com/512/2922/2922510.png" // Immagine admin
     : "https://cdn-icons-png.flaticon.com/512/2922/2922561.png"; // Immagine utente
@@ -13,7 +28,7 @@ export default function Navbar() {
     <nav className="w-full bg-white shadow-md px-6 py-4 flex items-center justify-between fixed top-0 z-50">
       {/* Logo */}
       <div className="text-2xl font-bold text-indigo-700">
-        <Link to={location}>Libreria</Link>
+        <Link to={location.pathname}>Libreria</Link>
       </div>
 
       {/* Sezione destra */}
@@ -22,8 +37,8 @@ export default function Navbar() {
           <Link to={"/"}>LogOut</Link>
         </button>
 
-        <p className=" border-gray-300 px-4 py-1 rounded-md text-gray-600 bg-gray-50">
-          Benvenuto, {role}
+        <p className="border-gray-300 px-4 py-1 rounded-md text-gray-600 bg-gray-50">
+          Benvenuto, {displayName}
         </p>
 
         <img

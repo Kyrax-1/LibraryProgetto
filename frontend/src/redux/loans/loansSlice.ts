@@ -62,6 +62,3 @@ const loansSlice = createSlice({
 });
 
 export default loansSlice.reducer;
-/**
- *
- */

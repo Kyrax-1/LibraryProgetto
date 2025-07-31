@@ -1,37 +1,68 @@
 import { useState } from "react";
-import SearchIcon from '@mui/icons-material/Search';
 import BooksList from "../components/BooksList";
-import { useParams } from "react-router";
-
-interface Props {
-    onSearch: (query: string) => void;
-}
 
 export default function HomepageUser() {
-    const par = useParams();
-    console.log(par)
-
-    const [query, setQuery] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        (query.trim());
+        console.log("Ricerca sottomessa:", searchQuery.trim());
+    };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(e.target.value);
+    };
+
+    const clearSearch = () => {
+        setSearchQuery("");
     };
 
     return (
-        <div>
-            {/* Search */}
-            <form onSubmit={handleSubmit} className="flex items-center gap-4 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm max-w-md w-full mb-6">
-                <SearchIcon className="text-gray-500" />
-                <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="w-full bg-transparent focus:outline-none text-gray-700 placeholder-gray-400"
-                    placeholder="Cerca un libro o autore..."
-                />
-            </form>
-            <BooksList></BooksList>
+        <div className="p-6 pt-5">
+            <div className="flex justify-center mb-8">
+                <form 
+                    onSubmit={handleSubmit} 
+                    className="flex items-center gap-4 bg-white border border-gray-200 rounded-full px-4 py-3 shadow-sm max-w-md w-full hover:shadow-md transition-shadow"
+                >
+                    {/* Icona Search Emoji */}
+                    <span className="text-gray-500 text-lg">🔍</span>
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        className="w-full bg-transparent focus:outline-none text-gray-700 placeholder-gray-400"
+                        placeholder="Cerca un libro o autore..."
+                    />
+                    {/* Pulsante per cancellare la ricerca */}
+                    {searchQuery && (
+                        <button
+                            type="button"
+                            onClick={clearSearch}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            ✕
+                        </button>
+                    )}
+                </form>
+            </div>
+
+            {/* Mostra query di ricerca attiva */}
+            {searchQuery.trim() && (
+                <div className="mb-4 text-center">
+                    <p className="text-gray-600 text-sm">
+                        Risultati per: <span className="font-medium text-indigo-600">"{searchQuery.trim()}"</span>
+                        <button 
+                            onClick={clearSearch}
+                            className="ml-2 text-indigo-600 hover:text-indigo-800 underline text-sm"
+                        >
+                            Cancella ricerca
+                        </button>
+                    </p>
+                </div>
+            )}
+
+            {/* Lista dei libri con query di ricerca */}
+            <BooksList searchQuery={searchQuery.trim()} />
         </div>
     );
 }
