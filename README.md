@@ -1,8 +1,4 @@
-# LibraryProgetto
-
-Applicativo per la gestione di una libreria creata con React.
-
-# Sistema di Gestione Biblioteca (FullStack)
+# Sistema di Gestione Biblioteca
 
 ## 📖 Descrizione del Progetto
 
@@ -41,8 +37,6 @@ Sviluppato con tecnologie moderne per prestazioni e user experience ottimali.
 
 - Ricercalibri
 - Gestione prestiti
-
-## 🚀 Installazione
 
 ### Prerequisiti
 
