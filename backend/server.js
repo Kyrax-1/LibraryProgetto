@@ -289,13 +289,17 @@ app.patch("/api/book/:id", async (req, res) => {
       `UPDATE libro SET ${updates.join(", ")} WHERE LibroID = ?`,
       values
     );
-
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Libro non trovato" });
     }
 
-    res.json(updates[0]);
-    res.json({ message: "Libro aggiornato" });
+    const [updatedBooks] = await db.query(
+      `SELECT * FROM libro WHERE LibroID = ?`,
+      [id]
+    );
+    res.json(updatedBooks[0]);
+    console.log("Res query: ", updatedBooks);
+    // res.json({ message: "Libro aggiornato" });
   } catch (error) {
     console.error("Errore PATCH book", error);
     res.status(500).json({ error: "Errore modifica libro" });
