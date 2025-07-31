@@ -22,14 +22,14 @@ export default function Navbar() {
           <Link to={"/"}>LogOut</Link>
         </button>
 
-        <div className="border border-gray-300 px-4 py-1 rounded-md text-gray-600 bg-gray-50">
-          {role}
-        </div>
+        <p className=" border-gray-300 px-4 py-1 rounded-md text-gray-600 bg-gray-50">
+          Benvenuto, {role}
+        </p>
 
         <img
           src={profileImg}
           alt="Profilo"
-          className="w-10 h-10 rounded-full object-cover border-2 border-indigo-300"
+          className="w-10 h-10 rounded-full object-cover border-2 border-indigo-300 cursor-pointer"
         />
       </div>
     </nav>
