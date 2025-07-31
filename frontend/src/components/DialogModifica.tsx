@@ -3,20 +3,40 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import { useAppDispatch } from '../redux/hooks';
-import { updateBookAsync } from '../redux/books/booksThunks';
-import type{ Book } from '../redux/books/booksSlice';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import { fetchBooks, updateBookAsync } from '../redux/books/booksThunks';
 import { Alert, CircularProgress } from '@mui/material';
 
-export default function DialogModifica({ Book }: { Book: Book }) {
+export default function DialogModifica({ bookId }: { bookId: number }) {
     const dispatch = useAppDispatch();
+
+    // ✅ Recupera il libro dallo store aggiornato
+    const book = useAppSelector((state) =>
+        state.books.items.find((b) => b.id === bookId)
+    );
+
     const [open, setOpen] = React.useState(false);
-    const [title, setTitle] = React.useState(Book.title);
-    const [author, setAuthor] = React.useState(Book.author);
+    const [title, setTitle] = React.useState('');
+    const [author, setAuthor] = React.useState('');
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+
+
+   const handleClickOpen = () => {
+        if (book) {
+            setTitle(book.title);
+            setAuthor(book.author);
+        }
+        setError(null);
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);
         setError(null);
@@ -24,10 +44,13 @@ export default function DialogModifica({ Book }: { Book: Book }) {
         try {
             await dispatch(
                 updateBookAsync({
-                    id: Book.id,
+                    id: bookId,
                     updates: { title, author },
                 })
             ).unwrap();
+
+            dispatch(fetchBooks());
+            
             handleClose();
         } catch (err) {
             setError('Errore durante la modifica del libro');
@@ -35,17 +58,6 @@ export default function DialogModifica({ Book }: { Book: Book }) {
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleClickOpen = () => {
-        setTitle(Book.title);
-        setAuthor(Book.author);
-        setError(null);
-        setOpen(true);
-    };
-
-    const handleClose = () => {
-        setOpen(false);
     };
 
     return (

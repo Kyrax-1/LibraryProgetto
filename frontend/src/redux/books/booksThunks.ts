@@ -62,6 +62,7 @@ export const updateBookAsync = createAsyncThunk<Book,{ id: number; updates: { ti
       throw new Error(errorData.message || 'Errore nell\'aggiornamento del libro');
     }
     const data = await res.json();
+    console.log(data)
     return data;
   }
 );
