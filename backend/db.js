@@ -5,7 +5,7 @@ const pool = mysql.createPool({
   host: "localhost",
   port: 3306,
   user: "root", // il tuo utente MySQL
-  password: "admin", // la tua password MySQL
+  password: "Axios.123", // la tua password MySQL
   database: "gestionebiblioteca", // il database che userai
 });
 

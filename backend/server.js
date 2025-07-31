@@ -178,11 +178,14 @@ app.post("/api/loan", async (req, res) => {
   try {
     await connection.beginTransaction();
 
+    console.log("pre insert into")
+
     // Inserisci prestito
     const [loanResult] = await connection.query(
       "INSERT INTO prestito (LibroID, UtenteID, borrowerName, loanDate, loanExpir) VALUES (?, ?, ?, ?, ?)",
       [LibroID, UtenteID, borrowerName, loanDate, loanExpir]
     );
+    console.log("insert into query")
 
     // Aggiorna disponibilità libro
     await connection.query(
@@ -305,6 +308,28 @@ app.patch("/api/book/:id", async (req, res) => {
     res.status(500).json({ error: "Errore modifica libro" });
   }
 });
+
+//RECUPERO UTENTI
+app.get("/api/utenti", async (req, res) => {
+  try {
+    console.log("Tentativo di recupero utenti...");
+
+    // JOIN LEFT per includere tutti i gli utenti
+    const [rows] = await db.query(`
+      SELECT * FROM utente
+    `);
+
+    console.log("Utenti recuperati:", rows);
+    res.json(rows);
+  } catch (error) {
+    console.error("Errore GET utenti - Dettagli completi:", error);
+    console.error("Errore message:", error.message);
+    console.error("Errore code:", error.code);
+    res.status(500).json({ error: "Errore nel recupero utenti" });
+  }
+});
+
+
 
 // Avvia il server
 app.listen(port, () => {

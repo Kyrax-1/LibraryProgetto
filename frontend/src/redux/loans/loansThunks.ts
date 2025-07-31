@@ -55,6 +55,7 @@ export const borrowBookAsync = createAsyncThunk<
       const today = new Date();
       const expirationDate = new Date();
       expirationDate.setMonth(today.getMonth() + 1);
+      console.log("fetchloan")
 
       const res = await fetch('/api/loan', {
         method: 'POST',

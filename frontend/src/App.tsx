@@ -5,6 +5,8 @@ import Homepage from './pages/Homepage';
 import User from './pages/User';
 import HomepageAdmin from './pages/HomepageAdmin';
 import PrestitiAdmin from './pages/PrestitiAdmin';
+import HomepageUser from './pages/HomepageUser';
+import PrestitiUser from './pages/PrestitiUser';
 
 function App() {
   return (
@@ -15,7 +17,10 @@ function App() {
           <Route path="home" element={<HomepageAdmin />} />
           <Route path="prestiti" element={<PrestitiAdmin />} />
         </Route>
-        <Route path="/user" element={<User />} />
+        <Route path="/user/:id" element={<User />}>
+          <Route path="home" element={<HomepageUser />} />
+          <Route path="prestiti" element={<PrestitiUser />} />
+        </Route>
       </Routes>
     </div>
 

@@ -8,7 +8,6 @@ export default function BooksList() {
     const dispatch = useAppDispatch();
     
     const books = useAppSelector((state) => state.books.items);
-    console.log("📚 Lista libri aggiornata:", books);
     const loading = useAppSelector((state) => state.books.loading);
     const error = useAppSelector((state) => state.books.error);
 
@@ -33,7 +32,7 @@ export default function BooksList() {
     {!loading && !error && (
       <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-10 px-4">
         {books.map((book: Book) => (
-          <BookItem key={book.id} book={book} isAdmin />
+          <BookItem key={book.id} book={book} />
         ))}
       </div>
     )}
