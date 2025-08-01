@@ -10,7 +10,7 @@ import { Alert, CircularProgress } from '@mui/material';
 export default function DialogModifica({ bookId }: { bookId: number }) {
     const dispatch = useAppDispatch();
 
-    // ✅ Recupera il libro dallo store aggiornato
+    // Recupera il libro dallo store aggiornato
     const book = useAppSelector((state) =>
         state.books.items.find((b) => b.id === bookId)
     );
@@ -20,8 +20,6 @@ export default function DialogModifica({ bookId }: { bookId: number }) {
     const [author, setAuthor] = React.useState('');
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
-
-
 
    const handleClickOpen = () => {
         if (book) {

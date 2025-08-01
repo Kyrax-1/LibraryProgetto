@@ -1,4 +1,4 @@
-import { useAppDispatch} from "../redux/hooks";
+import { useAppDispatch } from "../redux/hooks";
 import type { Book } from "../redux/books/booksSlice";
 import { extendLoanAsync, returnBookAsync } from "../redux/loans/loansThunks";
 
@@ -9,34 +9,40 @@ type BookItemPrestatoProps = {
   showBorrowerInfo?: boolean;
 };
 
-export default function BookItemPrestato({ book, loanId, showBorrowerInfo}: BookItemPrestatoProps) {
+
+export default function BookItemPrestato({ book, loanId, showBorrowerInfo }: BookItemPrestatoProps) {
   const dispatch = useAppDispatch();
   const isAdminView = showBorrowerInfo;
-  
+
+  function parseItalianDate(dateString:string) {
+    const [day, month, year] = dateString.split('/');
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day)); // month - 1 perché i mesi in JS vanno da 0-11
+  }
+
   const handleReturnBook = () => {
     if (!loanId) {
       console.error("Impossibile terminare il prestito: loanId mancante");
       return;
     }
-    
+
     if (window.confirm(`Sei sicuro di voler terminare il prestito di "${book.title}"?`)) {
-      dispatch(returnBookAsync({ loanId })); 
+      dispatch(returnBookAsync({ loanId }));
     }
   };
 
   function handleExtendLoan(): void {
-    if (!loanId){
+    if (!loanId) {
       console.error("Impossibile estendere il prestito: loanId mancante");
       return;
     }
     if (window.confirm(`Vuoi allungare il prestito di "${book.title}" ?`)) {
-      dispatch(extendLoanAsync({loanId}))
+      dispatch(extendLoanAsync({ loanId }))
     }
   }
+  
+  const isExpired = book.loanExpir && parseItalianDate(book.loanExpir) < new Date();
 
-  const isExpired = book.loanExpir && new Date(book.loanExpir) < new Date();
-
-   return (
+  return (
     <div className="bg-white rounded-xl shadow-xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl border border-gray-200">
       {/* Header con titolo e stato */}
       <div className="flex justify-between items-start mb-3">

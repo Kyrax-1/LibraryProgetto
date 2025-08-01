@@ -3,6 +3,7 @@ import { fetchBooks } from "../redux/books/booksThunks";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
 import BookItemPrestato from "./BookItemPrestato";
 import { useParams } from "react-router";
+import { fetchUtenti } from '../redux/utenti/utentiThunk';
 
 export default function BookPrestati() {
   const dispatch = useAppDispatch();
@@ -31,9 +32,9 @@ export default function BookPrestati() {
 
   useEffect(() => {
     dispatch(fetchBooks());
+    dispatch(fetchUtenti());
   }, [dispatch]);
 
-  const isLoading = loading || utentiLoading;
 
   if (!isAdminView && !utentiLoading && utenti.length > 0 && !utenteTrovato) {
     return (
@@ -42,7 +43,6 @@ export default function BookPrestati() {
       </div>
     );
   }
-
   return (
     <>
       {loading && (

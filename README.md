@@ -1,10 +1,11 @@
+![Screen Homepage](/frontend/images/homescreen.png)
 # Sistema di Gestione Biblioteca
 
 ## 📖 Descrizione del Progetto
 
 Un sistema completo per la gestione di biblioteche con:
 
-- **Pannello admin**: Aggiungi, modifica e rimuovi libri
+- **Pannello admin**: Aggiungi, modifica, rimuovi libri, termina prestiti
 - **Area utente**: Cerca e prendi in prestito libri
 
 Sviluppato con tecnologie moderne per prestazioni e user experience ottimali.

@@ -6,7 +6,6 @@ export default function HomepageUser() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Ricerca sottomessa:", searchQuery.trim());
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

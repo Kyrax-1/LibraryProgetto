@@ -1,15 +1,13 @@
+require('dotenv').config();
 const mysql = require("mysql2");
 
-// Crea il pool di connessioni
 const pool = mysql.createPool({
   host: "localhost",
-  port: 3306,
-  user: "root", // il tuo utente MySQL
-  password: "admin", // la tua password MySQL
-  database: "gestionebiblioteca", // il database che userai
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PW,
+  database: process.env.DB_NAME,
 });
 
-// Trasforma in promise per usare async/await
 const db = pool.promise();
-
 module.exports = db;
