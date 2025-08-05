@@ -1,53 +1,87 @@
-import { useLocation, Link, useParams } from "react-router";
-import { useAppSelector } from "../redux/hooks";
+import { Link, useNavigate } from 'react-router';
+import { useAppSelector, useAppDispatch } from '../redux/hooks';
+import { logout } from '../redux/utenti/utentiSlice';
+import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Avatar, Tooltip } from '@mui/material';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import { useState } from 'react';
 
 export default function Navbar() {
-  const location = useLocation();
-  const { utenteId } = useParams(); // Recupera l'ID dell'utente dai parametri URL
-  const isAdmin = location.pathname.includes("/admin");
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const isLoggedIn = useAppSelector((state) => state.utenti.isLoggedIn);
+  const user = useAppSelector((state) => state.utenti.user);
 
-  // Recupera gli utenti dal Redux store
-  const utenti = useAppSelector((state) => state.utenti.utenti);
-  const utentiLoading = useAppSelector((state) => state.utenti.loading);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
-  // Trova l'utente specifico se non è admin
-  const utente = !isAdmin && utenteId ? utenti.find(u => u.id === parseInt(utenteId)) : null;
+  const handleMenuClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
 
-  // Determina il nome da mostrare
-  const displayName = isAdmin
-    ? "Admin"
-    : utentiLoading
-      ? "Caricamento..."
-      : (utente?.nomeCompleto || "Utente");
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
-  const profileImg = isAdmin
-    ? "https://cdn-icons-png.flaticon.com/512/2922/2922510.png" // Immagine admin
-    : "https://cdn-icons-png.flaticon.com/512/2922/2922561.png"; // Immagine utente
+  const handleLogout = () => {
+    handleClose();
+    dispatch(logout());
+    navigate('/');
+  };
 
   return (
-    <nav className="w-full bg-white shadow-md px-6 py-4 flex items-center justify-between fixed top-0 z-50">
-      {/* Logo */}
-      <div className="text-2xl font-bold text-indigo-700">
-        <Link to={isAdmin?"/admin/home":`/user/${utenteId}/home`}>Libreria</Link>
-      </div>
+    <AppBar position="fixed" color="primary" sx={{ zIndex: 2000 }}>
+      <Toolbar className="container mx-auto flex justify-between">
+        <Typography
+          variant="h6"
+          component={Link}
+          to="/"
+          className="text-white no-underline hover:opacity-80 transition"
+        >
+          La Tua Libreria
+        </Typography>
 
-      {/* Sezione destra */}
-      <div className="flex items-center space-x-6">
-        <Link to={"/"}>
-          <button className="border border-gray-300 px-4 py-1 rounded-md hover:bg-gray-100 transition">
-            LogOut
-          </button>
-        </Link>
-        <p className="border-gray-300 px-4 py-1 rounded-md text-gray-600 bg-gray-50">
-          Benvenuto, {displayName}
-        </p>
-
-        <img
-          src={profileImg}
-          alt="Profilo"
-          className="w-10 h-10 rounded-full object-cover border-2 border-indigo-300 cursor-pointer"
-        />
-      </div>
-    </nav>
+        {isLoggedIn ? (
+          <div>
+            <Tooltip title="Impostazioni utente">
+              <IconButton onClick={handleMenuClick} color="inherit">
+                <Avatar sx={{ bgcolor: 'secondary.main', width: 36, height: 36 }}>
+                  {user?.nome?.[0]}
+                </Avatar>
+              </IconButton>
+            </Tooltip>
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+              <MenuItem disabled>
+                <Typography variant="body1">
+                  {user?.nome} {user?.cognome}
+                </Typography>
+              </MenuItem>
+              <MenuItem onClick={handleClose} component={Link} to="/profilo">
+                <AccountCircleIcon sx={{ mr: 1 }} />
+                Profilo (in arrivo)
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>
+                <LogoutIcon sx={{ mr: 1 }} />
+                Logout
+              </MenuItem>
+            </Menu>
+          </div>
+        ) : (
+          <Typography
+            component={Link}
+            to="/"
+            className="text-white no-underline hover:opacity-80 transition"
+          >
+            Login / Registrazione
+          </Typography>
+        )}
+      </Toolbar>
+    </AppBar>
   );
 }

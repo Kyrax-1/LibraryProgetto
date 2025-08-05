@@ -1,6 +1,10 @@
+// src/redux/loans/loansThunks.ts
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { fetchBooks, fetchBookLoan } from './../books/booksThunks';
+import axios from 'axios';
+import { fetchBooks } from './../books/booksThunks';
 import type { AppDispatch, RootState } from './../store';
+import type { Loan } from './loansSlice';
+import axiosInstance from '../../services/api';
 
 // Tipi per gli errori API
 type ApiErrorResponse = {
@@ -9,33 +13,25 @@ type ApiErrorResponse = {
   code?: string;
 };
 
-type CustomError = Error & {
-  response?: {
-    data?: ApiErrorResponse;
-  };
-};
-
 // Tipo per i dati necessari a prestare un libro
 export type BorrowBookPayload = {
   bookId: number;
   borrowerName: string;
   userId: number;
+  loanDate: string;
+  loanExpir: string;
 };
 
-// Funzione helper per gestire gli errori
-const handleApiError = (error: unknown): string => {
-  if (typeof error === 'string') {
-    return error;
-  }
-
-  if (error instanceof Error) {
-    const customError = error as CustomError;
-    if (customError.response?.data?.error) {
-      return customError.response.data.error;
+const handleAxiosError = (error: unknown): string => {
+  if (axios.isAxiosError(error)) {
+    if (error.response?.data?.error) {
+      return error.response.data.error;
     }
     return error.message;
   }
-
+  if (error instanceof Error) {
+    return error.message;
+  }
   return 'Errore sconosciuto';
 };
 
@@ -50,35 +46,14 @@ export const borrowBookAsync = createAsyncThunk<
   }
 >(
   'loans/borrowBook',
-  async ({ bookId, borrowerName, userId }, { dispatch, rejectWithValue }) => {
+  async (payload, { dispatch, rejectWithValue }) => {
     try {
-      const today = new Date();
-      const expirationDate = new Date();
-      expirationDate.setMonth(today.getMonth() + 1);
-      console.log("fetchloan")
+      await axiosInstance.post('/book/loan', payload);
 
-      const res = await fetch('/api/loan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          LibroID: bookId,
-          UtenteID: userId,
-          borrowerName,
-          loanDate: today.toISOString().split('T')[0],
-          loanExpir: expirationDate.toISOString().split('T')[0]
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData: ApiErrorResponse = await res.json();
-        throw new Error(errorData.error || 'Errore nell\'avvio del prestito');
-      }
-
-      await dispatch(fetchBookLoan(bookId));
+      await dispatch(fetchBooks());
+      await dispatch(fetchLoansAsync());
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleAxiosError(error));
     }
   }
 );
@@ -96,18 +71,12 @@ export const extendLoanAsync = createAsyncThunk<
   'loans/extendLoan',
   async ({ loanId }, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch(`/api/loan/${loanId}/extend`, {
-        method: 'PATCH',
-      });
-
-      if (!res.ok) {
-        const errorData: ApiErrorResponse = await res.json();
-        throw new Error(errorData.error || 'Errore nell\'estensione del prestito');
-      }
+      await axiosInstance.patch(`/book/loan/${loanId}/extend`);
 
       await dispatch(fetchBooks());
+      await dispatch(fetchLoansAsync());
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleAxiosError(error));
     }
   }
 );
@@ -125,18 +94,49 @@ export const returnBookAsync = createAsyncThunk<
   'loans/returnBook',
   async ({ loanId }: { loanId: number }, { dispatch, rejectWithValue }) => {
     try {
-      const res = await fetch(`/api/loan/${loanId}`, {
-        method: 'DELETE',
-      });
-
-      if (!res.ok) {
-        const errorData: ApiErrorResponse = await res.json();
-        throw new Error(errorData.error || 'Errore nella restituzione del libro');
-      }
+      await axiosInstance.delete(`/book/loan/${loanId}`);
 
       await dispatch(fetchBooks());
+      await dispatch(fetchLoansAsync());
     } catch (error) {
-      return rejectWithValue(handleApiError(error));
+      return rejectWithValue(handleAxiosError(error));
+    }
+  }
+);
+
+
+export const fetchLoansAsync = createAsyncThunk<
+  Loan[],
+  void,
+  {
+    rejectValue: string;
+  }
+>(
+  'loans/fetchLoans',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get<Loan[]>('/loans');
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(handleAxiosError(error));
+    }
+  }
+);
+
+export const fetchUserLoansAsync = createAsyncThunk<
+  Loan[],
+  number,
+  {
+    rejectValue: string;
+  }
+>(
+  'loans/fetchUserLoans',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get<Loan[]>(`/loans/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(handleAxiosError(error));
     }
   }
 );

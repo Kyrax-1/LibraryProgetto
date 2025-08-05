@@ -1,95 +1,102 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios'; // Importa Axios
 import type { Book } from './booksSlice';
+import axiosInstance from './../../services/api';
 
-//Fetch libri
-export const fetchBooks = createAsyncThunk<Book[]>(
+// Funzione helper per gestire gli errori di Axios (riutilizzabile)
+const handleAxiosError = (error: unknown): string => {
+  if (axios.isAxiosError(error)) {
+    // Errore dal server (es. 400, 404, 500)
+    if (error.response?.data?.error) {
+      return error.response.data.error;
+    }
+    // Messaggio di errore generico di Axios
+    return error.message;
+  }
+  // Errore non Axios
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'Errore sconosciuto';
+};
+
+// Fetch libri
+export const fetchBooks = createAsyncThunk<Book[], void, { rejectValue: string }>(
   'books/fetchAll',
-  async () => {
-    const res = await fetch('/api/book');
-    if (!res.ok) throw new Error('Errore nel fetch dei books');
-    return await res.json();
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get<Book[]>('/book');
+      return response.data; // Axios restituisce i dati direttamente in .data
+    } catch (error) {
+      return rejectWithValue(handleAxiosError(error));
+    }
   }
 );
 
-//Fetch prestiti
+// Fetch prestiti specifici per un libro (se necessario per lo stato del libro)
 export const fetchBookLoan = createAsyncThunk<
-  { id: number; bookId: number; borrowerName: string; loanDate: string; loanExpir: string },number
+  { id: number; bookId: number; borrowerName: string; loanDate: string; loanExpir: string } | null,
+  number,
+  { rejectValue: string }
 >(
   'books/fetchLoan',
-  async (bookId) => {
-    const res = await fetch(`/api/book/${bookId}/loan`);
-    if (!res.ok) return null;
-    const loan = await res.json();
-    return loan ? { ...loan, bookId } : null;
+  async (bookId, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get<{ id: number; bookId: number; borrowerName: string; loanDate: string; loanExpir: string }>(`/book/${bookId}/loan`);
+      // Se la risposta è 200 ma non ci sono dati o è un array vuoto, restituisci null
+      if (response.status === 204 || !response.data) { // Esempio: il server risponde 204 No Content se non c'è prestito
+        return null;
+      }
+      return { ...response.data, bookId }; // Axios restituisce i dati direttamente in .data
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null; // Il libro non ha un prestito associato
+      }
+      return rejectWithValue(handleAxiosError(error));
+    }
   }
 );
 
+
 // Chiamata per aggiungere libri
-export const addBookAsync = createAsyncThunk<Book, { author: string, title: string }>(
+export const addBookAsync = createAsyncThunk<Book, { author: string; title: string }, { rejectValue: string }>(
   'books/addBook',
-  async (bookData) => {
-    const res = await fetch('/api/book', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+  async (bookData, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post<Book>('/book', {
         ...bookData,
-        isAvailable: true // Solo questo campo, gli altri sono gestiti dal database
-      }),
-    });
-    
-    if (!res.ok) throw new Error('Errore nell\'aggiunta del libro');
-    const data = await res.json();
-    return data;
+        isAvailable: true // Questo campo viene gestito dal frontend come sempre disponibile all'aggiunta
+      });
+      return response.data; // Axios restituisce i dati direttamente in .data
+    } catch (error) {
+      return rejectWithValue(handleAxiosError(error));
+    }
   }
 );
 
 // Update book (SOLO per dati del libro, non prestiti)
-export const updateBookAsync = createAsyncThunk<Book,{ id: number; updates: { title?: string; author?: string } }>(
+export const updateBookAsync = createAsyncThunk<Book, { id: number; updates: { title?: string; author?: string } }, { rejectValue: string }>(
   'books/updateBook',
-  async ({ id, updates }) => {
-    const res = await fetch(`/api/book/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(updates),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.message || 'Errore nell\'aggiornamento del libro');
+  async ({ id, updates }, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.patch<Book>(`/book/${id}`, updates);
+      console.log("Dati aggiornati dal server:", response.data);
+      return response.data; // Axios restituisce i dati direttamente in .data
+    } catch (error) {
+      return rejectWithValue(handleAxiosError(error));
     }
-    const data = await res.json();
-    console.log(data)
-    return data;
   }
 );
- 
 
-//THUNK PER L'ELIMINAZIONE DI UN LIBRO
-
-
-export const deleteBookAsync = createAsyncThunk<number, number>(
+// THUNK PER L'ELIMINAZIONE DI UN LIBRO
+export const deleteBookAsync = createAsyncThunk<number, number, { rejectValue: string }>(
   'books/deleteBook',
   async (bookId, { rejectWithValue }) => {
     try {
-      const res = await fetch(`/api/book/${bookId}`, {
-        method: 'DELETE',
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        return rejectWithValue(errorData.details || errorData.error);
-      }
-
-      return bookId;
+      await axiosInstance.delete(`/book/${bookId}`);
+      return bookId; // Restituisce l'ID del libro eliminato per aggiornare lo stato
     } catch (error) {
-      if (error instanceof Error) {
-        return rejectWithValue(error.message);
-      }
-      return rejectWithValue('Errore sconosciuto durante l\'eliminazione del libro');
+      return rejectWithValue(handleAxiosError(error));
     }
   }
 );

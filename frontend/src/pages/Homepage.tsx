@@ -1,101 +1,261 @@
-import { useEffect, useState, useRef } from "react";
+// src/pages/Homepage.tsx
+import React, { useState, useEffect } from "react"; // Assicurati di importare useEffect
+import { useNavigate } from "react-router"; // Useremo useNavigate per la navigazione
 import { Link } from "react-router"; 
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import { fetchUtenti } from "../redux/utenti/utentiThunk";
+import api from "../services/api"; // Importa il nostro servizio API
+import {
+  TextField,
+  Button,
+  Typography,
+  Paper,
+  Box,
+  Tab,
+  Tabs,
+} from "@mui/material"; 
+import { useAppDispatch, useAppSelector } from "../redux/hooks"; // Useremo Redux
+import { loginSuccess, logout } from "../redux/utenti/utentiSlice"; 
+
+// Rimuovi l'importazione di fetchUtenti se non la usi più
+// import { fetchUtenti } from "../redux/utenti/utentiThunk"; // Rimuovi o commenta
 
 export default function Homepage() {
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const utenti = useAppSelector((state) => state.utenti.utenti);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<string>("Seleziona un utente");
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // Ottieni lo stato di login da Redux
+  const isLoggedIn = useAppSelector((state) => state.utenti.isLoggedIn);
+  const user = useAppSelector((state) => state.utenti.user); // Recupera l'utente dallo stato Redux
 
-  useEffect(() => {
-    dispatch(fetchUtenti());
-  }, [dispatch]);
+  const [tabValue, setTabValue] = useState(0); 
 
-  // Chiude il dropdown se si clicca fuori
+  // Stato per il form di Login
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
+
+  // Stato per il form di Registrazione
+  const [regNome, setRegNome] = useState("");
+  const [regCognome, setRegCognome] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regError, setRegError] = useState<string | null>(null);
+  const [regSuccess, setRegSuccess] = useState<string | null>(null);
+
+  // Usa useEffect per reindirizzare se l'utente è già loggato
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+    if (isLoggedIn && user) { // Se l'utente è già loggato e abbiamo i dati utente
+      if (user.role === 'admin') {
+        navigate('/admin/home');
+      } else {
+        navigate(`/user/${user.id}/home`);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isLoggedIn, user, navigate]); // Dipendenze per useEffect
 
-  const handleUserSelect = (userId: number, userName: string) => {
-    setSelectedId(userId);
-    setSelectedUser(userName);
-    setIsOpen(false);
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+    setLoginError(null);
+    setRegError(null);
+    setRegSuccess(null);
   };
+
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setLoginError(null);
+
+    try {
+      const response = await api.post("/auth/login", {
+        email: loginEmail,
+        password: loginPassword,
+      });
+
+      const { token, user } = response.data; // Assicurati che il tuo backend restituisca 'user' con il campo 'role'
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      dispatch(loginSuccess({ token, user }));
+
+      console.log("Login riuscito:", response.data);
+
+      // Logica di reindirizzamento basata sul ruolo
+      if (user && user.role) {
+        if (user.role === 'admin') {
+          navigate('/admin/home');
+        } else { // Presumiamo 'user' per qualsiasi altro ruolo
+          navigate(`/user/${user.id}/home`);
+        }
+      } else {
+        // Fallback se il ruolo non è definito o altri problemi
+        navigate("/homepage-user"); // Pagina generica se il ruolo non è chiaro
+      }
+    } catch (error: any) {
+      console.error("Errore di login:", error);
+      if (error.response && error.response.data && error.response.data.error) {
+        setLoginError(error.response.data.error);
+      } else {
+        setLoginError("Credenziali non valide. Riprova.");
+      }
+      dispatch(logout()); 
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    }
+  };
+
+  const handleRegister = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setRegError(null); 
+    setRegSuccess(null);
+
+    try {
+      const response = await api.post("/auth/register", {
+        nome: regNome,
+        cognome: regCognome,
+        email: regEmail,
+        password: regPassword,
+      });
+
+      console.log("Registrazione riuscita:", response.data);
+      setRegSuccess("Registrazione completata con successo! Ora puoi effettuare il login.");
+      setTabValue(0); 
+      setLoginEmail(regEmail); 
+      setRegNome("");
+      setRegCognome("");
+      setRegEmail("");
+      setRegPassword("");
+    } catch (error: any) {
+      console.error("Errore di registrazione:", error);
+      if (error.response && error.response.data && error.response.data.error) {
+        setRegError(error.response.data.error);
+      } else {
+        setRegError("Errore durante la registrazione. Riprova.");
+      }
+    }
+  };
+
+  // Se l'utente è già loggato (e useEffect ha reindirizzato), non mostrare la homepage
+  if (isLoggedIn && user) {
+    return null; 
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 to-indigo-200 flex items-center justify-center p-6">
-      <div className="bg-white shadow-2xl rounded-2xl p-10 max-w-md w-full text-center space-y-6">
-        <h1 className="text-4xl font-bold text-indigo-700">Benvenuto in Libreria</h1>
-        <p className="text-gray-600">
-          Esplora un mondo di letture. Accedi come <span className="font-semibold text-indigo-600">Admin</span> per gestire contenuti, oppure seleziona un <span className="font-semibold text-indigo-600">Utente</span> per scoprire nuovi libri.
-        </p>
+      <Paper elevation={8} sx={{ borderRadius: "16px", maxWidth: "450px", width: "100%", p: 4, textAlign: "center", boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ color: "indigo.700", fontWeight: "bold", mb: 3 }}>
+          Benvenuto in Libreria
+        </Typography>
+        <Typography variant="body1" color="textSecondary" sx={{ mb: 4 }}>
+          Accedi o registrati per esplorare un mondo di letture.
+        </Typography>
 
-        <div className="flex flex-col gap-4">
-          <Link
-            to="/admin/home"
-            className="bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 transition duration-300"
-          >
-            Accedi come Admin
-          </Link>
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          indicatorColor="primary"
+          textColor="primary"
+          variant="fullWidth"
+          sx={{ mb: 4, '.MuiTabs-indicator': { backgroundColor: 'indigo.600' } }}
+        >
+          <Tab label="Login" />
+          <Tab label="Registrazione" />
+        </Tabs>
 
-          <div className="relative" ref={dropdownRef}>
-            {/* Select button */}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="w-full py-3 px-4 bg-gradient-to-r from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-xl text-indigo-700 font-medium focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 hover:border-indigo-300 transition-all duration-300 shadow-sm flex items-center justify-between"
-            >
-              <span className={selectedId ? "text-indigo-700" : "text-indigo-500"}>
-                {selectedUser}
-              </span>
-              <svg 
-                className={`w-5 h-5 text-indigo-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            {/* Dropdown menu */}
-            {isOpen && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-indigo-200 rounded-xl shadow-lg z-10 max-h-60 overflow-y-auto">
-                {utenti.map((utente) => (
-                  <button
-                    key={utente.id}
-                    onClick={() => handleUserSelect(utente.id, utente.nomeCompleto)}
-                    className="w-full px-4 py-3 text-left hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-200 text-indigo-700 border-b border-indigo-100 last:border-b-0 flex items-center space-x-3"
-                  >
-                    <div className="w-8 h-8 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                      {utente.nomeCompleto.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="font-medium">{utente.nomeCompleto}</span>
-                  </button>
-                ))}
-              </div>
+        {tabValue === 0 && ( // Form di Login
+          <Box component="form" onSubmit={handleLogin} sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <TextField
+              label="Email"
+              type="email"
+              variant="outlined"
+              fullWidth
+              value={loginEmail}
+              onChange={(e) => setLoginEmail(e.target.value)}
+              required
+            />
+            <TextField
+              label="Password"
+              type="password"
+              variant="outlined"
+              fullWidth
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+              required
+            />
+            {loginError && (
+              <Typography color="error" variant="body2">
+                {loginError}
+              </Typography>
             )}
-          </div>
-
-          {selectedId !== null && (
-            <Link
-              to={`/user/${selectedId}/home`}
-              className="bg-gray-200 text-indigo-700 py-3 rounded-xl hover:bg-gray-300 transition duration-300"
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              size="large"
+              sx={{ py: 1.5, borderRadius: "8px", bgcolor: 'indigo.600', '&:hover': { bgcolor: 'indigo.700' } }}
             >
-              Accedi come Utente
-            </Link>
-          )}
-        </div>
-      </div>
+              Accedi
+            </Button>
+          </Box>
+        )}
+
+        {tabValue === 1 && ( // Form di Registrazione
+          <Box component="form" onSubmit={handleRegister} sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+             <TextField
+              label="Nome"
+              variant="outlined"
+              fullWidth
+              value={regNome}
+              onChange={(e) => setRegNome(e.target.value)}
+              required
+            />
+             <TextField
+              label="Cognome"
+              variant="outlined"
+              fullWidth
+              value={regCognome}
+              onChange={(e) => setRegCognome(e.target.value)}
+              required
+            />
+            <TextField
+              label="Email"
+              type="email"
+              variant="outlined"
+              fullWidth
+              value={regEmail}
+              onChange={(e) => setRegEmail(e.target.value)}
+              required
+            />
+            <TextField
+              label="Password"
+              type="password"
+              variant="outlined"
+              fullWidth
+              value={regPassword}
+              onChange={(e) => setRegPassword(e.target.value)}
+              required
+            />
+            {regError && (
+              <Typography color="error" variant="body2">
+                {regError}
+              </Typography>
+            )}
+            {regSuccess && (
+              <Typography color="primary" variant="body2" sx={{ color: 'success.main' }}>
+                {regSuccess}
+              </Typography>
+            )}
+            <Button
+              type="submit"
+              variant="contained"
+              color="secondary"
+              fullWidth
+              size="large"
+              sx={{ py: 1.5, borderRadius: "8px", bgcolor: 'purple.600', '&:hover': { bgcolor: 'purple.700' } }}
+            >
+              Registrati
+            </Button>
+          </Box>
+        )}
+      </Paper>
     </div>
   );
 }

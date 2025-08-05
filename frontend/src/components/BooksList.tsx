@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { fetchBooks } from "../redux/books/booksThunks";
 import { useAppDispatch, useAppSelector } from "../redux/hooks";
-import BookItem from "./BookItems";
+import BookItem from "./BookItems"; // Assicurati che questo percorso sia corretto
 
 type BooksListProps = {
   searchQuery?: string; // Prop per la ricerca
@@ -10,10 +10,12 @@ type BooksListProps = {
 export default function BooksList({ searchQuery = "" }: BooksListProps) {
   const dispatch = useAppDispatch();
 
+  // Seleziona i libri, lo stato di caricamento e l'errore dallo slice dei libri
   const books = useAppSelector((state) => state.books.items);
   const loading = useAppSelector((state) => state.books.loading);
   const error = useAppSelector((state) => state.books.error);
 
+  // Effettua il dispatch di fetchBooks al montaggio del componente
   useEffect(() => {
     dispatch(fetchBooks());
   }, [dispatch]);
@@ -21,11 +23,11 @@ export default function BooksList({ searchQuery = "" }: BooksListProps) {
   // Filtra i libri in base alla query di ricerca
   const filteredBooks = books.filter((book) => {
     if (!searchQuery) return true; // Se non c'è ricerca, mostra tutti i libri
-    
+
     const query = searchQuery.toLowerCase();
     const titleMatch = book.title.toLowerCase().includes(query);
     const authorMatch = book.author.toLowerCase().includes(query);
-    
+
     return titleMatch || authorMatch;
   });
 
@@ -74,16 +76,16 @@ export default function BooksList({ searchQuery = "" }: BooksListProps) {
       {filteredBooks.map((book) => (
         <BookItem key={book.id} book={book} />
       ))}
-      
+
       {/* Info sui risultati */}
-      <div className="col-span-full text-center mt-4">
-        <p className="text-sm text-gray-500">
-          {searchQuery 
-            ? `${filteredBooks.length} risultat${filteredBooks.length === 1 ? 'o' : 'i'} trovat${filteredBooks.length === 1 ? 'o' : 'i'}`
-            : `${books.length} libr${books.length === 1 ? 'o' : 'i'} totali`
-          }
-        </p>
-      </div>
+      {searchQuery && (
+        <div className="col-span-full text-center mt-4">
+          <p className="text-sm text-gray-600">
+            Mostrati {filteredBooks.length} risultati
+            {filteredBooks.length < books.length && ` su ${books.length} totali`}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

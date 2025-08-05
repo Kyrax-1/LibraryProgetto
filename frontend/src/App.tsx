@@ -7,19 +7,29 @@ import HomepageAdmin from './pages/HomepageAdmin';
 import PrestitiAdmin from './pages/PrestitiAdmin';
 import HomepageUser from './pages/HomepageUser';
 import PrestitiUser from './pages/PrestitiUser';
+import ProtectedRoute from './components/ProtectedRoutes';
 
 function App() {
   return (
     <div>
       <Routes>
         <Route path="/" element={<Homepage />} />
-        <Route path="/admin" element={<Admin />}>
-          <Route path="home" element={<HomepageAdmin />} />
-          <Route path="prestiti" element={<PrestitiAdmin />} />
+
+        {/* Rotte protette per l'Admin */}
+        <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+          <Route path="/admin" element={<Admin />}>
+            <Route path="home" element={<HomepageAdmin />} />
+            <Route path="prestiti" element={<PrestitiAdmin />} />
+          </Route>
         </Route>
-        <Route path="/user/:utenteId" element={<User />}>
-          <Route path="home" element={<HomepageUser />} />
-          <Route path="prestiti" element={<PrestitiUser />} />
+
+        {/* Rotte protette per l'Utente */}
+        {/* L'ID utente nella URL è corretto, ma l'accesso è comunque verificato dal ruolo */}
+        <Route element={<ProtectedRoute allowedRoles={['user', 'admin']} />}> {/* Un admin può vedere le pagine user se necessario */}
+          <Route path="/user/:utenteId" element={<User />}>
+            <Route path="home" element={<HomepageUser />} />
+            <Route path="prestiti" element={<PrestitiUser />} />
+          </Route>
         </Route>
       </Routes>
     </div>
@@ -28,41 +38,3 @@ function App() {
 }
 
 export default App;
-
-
-
-/* const dispatch = useAppDispatch();
-
-  const books = useAppSelector((state) => state.book.items);
-  const loading = useAppSelector((state) => state.book.loading);
-  const error = useAppSelector((state) => state.book.error);
-
-  useEffect(() => {
-    dispatch(fetchBooks());
-  }, [dispatch]);
-
-   return (
-    <>
-      <h1>PROVA GET</h1>
-
-      {loading && (
-        <p className="text-blue-400 animate-pulse text-sm mb-4">
-          Caricamento dei libri in corso...
-        </p>
-      )}
-
-      {error && (
-        <p className="text-red-500 font-semibold mb-4">
-          Errore: {error}
-        </p>
-      )}
-
-      <div className="space-y-4">
-        {!loading && !error && books.map((book: Book) => (
-          <div key={book.id}>
-            <BookItem book={book} />
-          </div>
-        ))}
-      </div>
-    </>
-  );  */

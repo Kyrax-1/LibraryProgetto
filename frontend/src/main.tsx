@@ -5,13 +5,16 @@ import App from "./App.tsx";
 import { BrowserRouter } from "react-router";
 import { Provider } from "react-redux";
 import store from "./redux/store.ts";
+import { setInterceptorsStore } from './services/api'; 
+
+setInterceptorsStore(store);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
-      <Provider store={store}>
+    <Provider store={store}>
+      <BrowserRouter>
         <App />
-      </Provider>
-    </BrowserRouter>
-  </StrictMode>
-)
+      </BrowserRouter>
+    </Provider>
+  </StrictMode>,
+);
