@@ -1,7 +1,7 @@
 // src/pages/Homepage.tsx
 import React, { useState, useEffect } from "react"; // Assicurati di importare useEffect
 import { useNavigate } from "react-router"; // Useremo useNavigate per la navigazione
-import { Link } from "react-router"; 
+import { Link } from "react-router";
 import api from "../services/api"; // Importa il nostro servizio API
 import {
   TextField,
@@ -11,9 +11,9 @@ import {
   Box,
   Tab,
   Tabs,
-} from "@mui/material"; 
+} from "@mui/material";
 import { useAppDispatch, useAppSelector } from "../redux/hooks"; // Useremo Redux
-import { loginSuccess, logout } from "../redux/utenti/utentiSlice"; 
+import { loginSuccess, logout } from "../redux/utenti/utentiSlice";
 
 // Rimuovi l'importazione di fetchUtenti se non la usi più
 // import { fetchUtenti } from "../redux/utenti/utentiThunk"; // Rimuovi o commenta
@@ -25,7 +25,7 @@ export default function Homepage() {
   const isLoggedIn = useAppSelector((state) => state.utenti.isLoggedIn);
   const user = useAppSelector((state) => state.utenti.user); // Recupera l'utente dallo stato Redux
 
-  const [tabValue, setTabValue] = useState(0); 
+  const [tabValue, setTabValue] = useState(0);
 
   // Stato per il form di Login
   const [loginEmail, setLoginEmail] = useState("");
@@ -95,7 +95,7 @@ export default function Homepage() {
       } else {
         setLoginError("Credenziali non valide. Riprova.");
       }
-      dispatch(logout()); 
+      dispatch(logout());
       localStorage.removeItem("token");
       localStorage.removeItem("user");
     }
@@ -103,7 +103,7 @@ export default function Homepage() {
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
-    setRegError(null); 
+    setRegError(null);
     setRegSuccess(null);
 
     try {
@@ -116,8 +116,8 @@ export default function Homepage() {
 
       console.log("Registrazione riuscita:", response.data);
       setRegSuccess("Registrazione completata con successo! Ora puoi effettuare il login.");
-      setTabValue(0); 
-      setLoginEmail(regEmail); 
+      setTabValue(0);
+      setLoginEmail(regEmail);
       setRegNome("");
       setRegCognome("");
       setRegEmail("");
@@ -132,9 +132,15 @@ export default function Homepage() {
     }
   };
 
+  const handleQuickLogin = async (email: string, password: string) => {
+    setLoginEmail(email);
+    setLoginPassword(password);
+    await handleLogin({ preventDefault: () => { } } as React.FormEvent);
+  };
+
   // Se l'utente è già loggato (e useEffect ha reindirizzato), non mostrare la homepage
   if (isLoggedIn && user) {
-    return null; 
+    return null;
   }
 
   return (
@@ -194,12 +200,27 @@ export default function Homepage() {
             >
               Accedi
             </Button>
+            <Button
+              variant="text"
+              onClick={() => handleQuickLogin("guest@example.com", "password123")}
+              sx={{ mt: 2, color: 'indigo.600' }}
+            >
+              Accedi come Visitatore
+            </Button>
+
+            <Button
+              variant="text"
+              onClick={() => handleQuickLogin("admin@example.com", "password123")}
+              sx={{ color: 'purple.600' }}
+            >
+              Accedi come Admin Demo
+            </Button>
           </Box>
         )}
 
         {tabValue === 1 && ( // Form di Registrazione
           <Box component="form" onSubmit={handleRegister} sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-             <TextField
+            <TextField
               label="Nome"
               variant="outlined"
               fullWidth
@@ -207,7 +228,7 @@ export default function Homepage() {
               onChange={(e) => setRegNome(e.target.value)}
               required
             />
-             <TextField
+            <TextField
               label="Cognome"
               variant="outlined"
               fullWidth
